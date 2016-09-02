@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {List, Map} from 'immutable';
+import {List, Map, fromJS} from 'immutable';
 
 import {setEntries, next, vote} from '../src/core'
 
@@ -118,36 +118,38 @@ describe('Application logic:', () => {
 
   describe('vote', () => {
     it('should handle first vote for entry', () => {
-      const entries = ['Trainspotting', '28 Days Later', 'Millions', 'Slumdog'];
-      const state = next(Map({entries: List(entries)}));
+      const state = fromJS({
+        pair: ['Trainspotting', '28 Days Later']
+      });
       const newState = vote(state, 'Trainspotting');
 
-      expect(newState).to.deep.equal(state.update('vote', (vote) => {
-        return vote.set('tally', Map({
-          Trainspotting: 1
-        }));
-      }));
+      expect(newState).to.equal(fromJS({
+          pair: ['Trainspotting', '28 Days Later'],
+          tally: {
+            'Trainspotting': 1
+          }
+        }
+      ));
     });
 
     it('should increment votes', () => {
-      const entries = ['Trainspotting', '28 Days Later', 'Millions', 'Slumdog'];
-      const state = next(Map({entries: List(entries)}));
+      const state = fromJS({
+        pair: ['Trainspotting', '28 Days Later'],
+        tally: {
+          'Trainspotting': 1
+        }
+      });
       let newState = vote(state, 'Trainspotting');
-      newState = vote(newState, 'Trainspotting');
+      newState = vote(newState, '28 Days Later');
 
-      expect(newState).to.deep.equal(state.update('vote', (vote) => {
-        return vote.set('tally', Map({
-          Trainspotting: 2
-        }));
-      }));
-
-      newState = vote(newState, 'Slumdog');
-      expect(newState).to.deep.equal(state.update('vote', (vote) => {
-        return vote.set('tally', Map({
-          Slumdog: 1,
-          Trainspotting: 2
-        }));
-      }));
+      expect(newState).to.equal(fromJS({
+          pair: ['Trainspotting', '28 Days Later'],
+          tally: {
+            'Trainspotting': 2,
+            '28 Days Later': 1
+          }
+        }
+      ));
     });
   });
 
